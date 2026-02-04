@@ -9,6 +9,46 @@ const KeepAliveModule = (function () {
     const playIcon = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>`;
     const stopIcon = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12"></rect></svg>`;
 
+    // UX Feedback Helpers
+    function showToast(message, type = 'success') {
+        const toast = document.getElementById('kaToast');
+        if (!toast) return;
+        toast.textContent = message;
+        toast.className = 'ka-toast show ' + type;
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 2500);
+    }
+
+    function showPingPulse() {
+        const indicator = document.getElementById('kaPingIndicator');
+        if (!indicator) return;
+        indicator.classList.remove('pulse');
+        void indicator.offsetWidth; // Force reflow
+        indicator.classList.add('pulse');
+    }
+
+    function playPingSound() {
+        const soundEnabled = document.getElementById('kaSoundEnabled')?.checked;
+        if (!soundEnabled) return;
+        // Create a subtle beep using Web Audio API
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = ctx.createOscillator();
+            const gainNode = ctx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(ctx.destination);
+            oscillator.frequency.value = 800;
+            oscillator.type = 'sine';
+            gainNode.gain.setValueAtTime(0.1, ctx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+            oscillator.start(ctx.currentTime);
+            oscillator.stop(ctx.currentTime + 0.1);
+        } catch (e) {
+            console.log('Sound not available');
+        }
+    }
+
     function init(tabId) {
         currentTabId = tabId;
         checkRestrictedPage();
@@ -162,6 +202,7 @@ const KeepAliveModule = (function () {
             [key]: { active: false, interval: intervalSeconds, pingCount: data.pingCount || 0 }
         }, () => {
             updateUI(false, null, null, data.pingCount || 0);
+            showToast('✋ Keep Alive desativado', 'error');
         });
     }
 
@@ -184,6 +225,7 @@ const KeepAliveModule = (function () {
             executePing();
             startCountdown();
             updateUI(true, now, nextPing, pingCount + 1);
+            showToast('✅ Keep Alive ativado!', 'success');
         });
     }
 
@@ -251,6 +293,10 @@ const KeepAliveModule = (function () {
 
         const lastPingEl = document.getElementById('kaLastPing');
         if (lastPingEl) lastPingEl.textContent = new Date(now).toLocaleTimeString();
+
+        // UX feedback
+        showPingPulse();
+        playPingSound();
     }
 
     function updatePresetActive(value) {

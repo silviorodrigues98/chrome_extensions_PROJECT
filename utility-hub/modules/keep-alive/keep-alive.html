@@ -47,6 +47,18 @@
     <span>Simula atividade para evitar logout por inatividade</span>
 </div>
 
+<div class="card">
+    <div class="toggle-container">
+        <span class="control-label" style="margin: 0;">Som ao executar ping</span>
+        <label class="switch">
+            <input type="checkbox" id="kaSoundEnabled">
+            <span class="slider"></span>
+        </label>
+    </div>
+</div>
+
+<div id="kaPingIndicator" class="ping-indicator"></div>
+
 <button id="kaToggleBtn" class="main-btn">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
         stroke-linecap="round" stroke-linejoin="round">
@@ -54,6 +66,8 @@
     </svg>
     <span>Ativar</span>
 </button>
+
+<div id="kaToast" class="ka-toast"></div>
 
 <style>
     .keep-alive-status {
@@ -92,5 +106,66 @@
         gap: 10px;
         font-size: 11px;
         color: var(--text-muted);
+    }
+
+    .ping-indicator {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: var(--success);
+        opacity: 0;
+        pointer-events: none;
+        z-index: 100;
+    }
+
+    .ping-indicator.pulse {
+        animation: pingPulse 0.6s ease-out;
+    }
+
+    @keyframes pingPulse {
+        0% {
+            opacity: 0.6;
+            transform: translate(-50%, -50%) scale(0.3);
+        }
+
+        100% {
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(1.5);
+        }
+    }
+
+    .ka-toast {
+        position: fixed;
+        bottom: 60px;
+        left: 50%;
+        transform: translateX(-50%) translateY(20px);
+        background: var(--card-bg);
+        border: 1px solid var(--glass-border);
+        color: var(--text);
+        padding: 10px 20px;
+        border-radius: 50px;
+        font-size: 12px;
+        opacity: 0;
+        transition: all 0.3s ease;
+        z-index: 200;
+        pointer-events: none;
+        white-space: nowrap;
+    }
+
+    .ka-toast.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+
+    .ka-toast.success {
+        border-color: var(--success);
+    }
+
+    .ka-toast.error {
+        border-color: #ef4444;
     }
 </style>
