@@ -1,0 +1,4 @@
+- [ ] Fix: Sound trigger in keep-alive mode
+    - [ ] Issue: Audio does not play when triggered automatically, only on direct user interaction.
+    - [ ] Potential Cause: Browser autoplay policies blocking non-user-initiated audio.
+    - [ ] Solution: Ensure the `AudioContext` is initialized or resumed during the initial user "activate" click and stored for subsequent use by the keep-alive trigger.

@@ -48,27 +48,48 @@ chrome.alarms.onAlarm.addListener((alarm) => {
                     func: () => {
                         document.dispatchEvent(new MouseEvent('mousemove', {
                             bubbles: true,
-                            clientX: Math.random() * 100,
-                            clientY: Math.random() * 100
+                            clientX: Math.random() * window.innerWidth,
+                            clientY: Math.random() * window.innerHeight
                         }));
                         document.dispatchEvent(new KeyboardEvent('keydown', {
                             bubbles: true,
                             key: 'Shift'
                         }));
+                        document.dispatchEvent(new KeyboardEvent('keyup', {
+                            bubbles: true,
+                            key: 'Shift'
+                        }));
+                        window.scrollBy(0, 1);
+                        setTimeout(() => window.scrollBy(0, -1), 50);
                         const url = window.location.href;
                         const sep = url.indexOf('?') > -1 ? '&' : '?';
                         fetch(url + sep + 'ka_bust=' + Date.now(), {
                             credentials: 'include',
-                            method: 'GET'
+                            method: 'GET',
+                            cache: 'no-store'
                         }).catch(() => { });
                         console.log('🔁 Keep-alive ping at', new Date().toLocaleTimeString());
                     }
                 }).catch(() => { });
 
-                // Update last ping
+                // Update storage with lastPing, nextPing, and increment pingCount
+                const now = Date.now();
+                const interval = data.interval || 120;
+                const nextPing = now + (interval * 1000);
+                const newPingCount = (data.pingCount || 0) + 1;
+
                 chrome.storage.local.set({
-                    [alarm.name]: { ...data, lastPing: Date.now() }
+                    [alarm.name]: {
+                        ...data,
+                        lastPing: now,
+                        nextPing: nextPing,
+                        pingCount: newPingCount
+                    }
                 });
+
+                // Update badge
+                chrome.action.setBadgeText({ text: 'KA', tabId: tabId });
+                chrome.action.setBadgeBackgroundColor({ color: '#10b981', tabId: tabId });
             }
         });
     }
