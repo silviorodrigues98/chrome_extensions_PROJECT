@@ -1,0 +1,20 @@
+{
+    "manifest_version": 3,
+    "name": "Auto Reload",
+    "version": "1.0",
+    "description": "Recarrega a página automaticamente em intervalos configuráveis",
+    "permissions": [
+        "storage",
+        "activeTab",
+        "scripting"
+    ],
+    "host_permissions": [
+        "<all_urls>"
+    ],
+    "action": {
+        "default_popup": "popup.html"
+    },
+    "background": {
+        "service_worker": "background.js"
+    }
+}
