@@ -21,11 +21,14 @@ const AutoReloadModule = (function () {
             const data = result[key] || {};
             const isActive = data.active || false;
             const hardReload = data.hardReload || false;
-            selectedInterval = interval;
+            if (data.interval) {
+                selectedInterval = data.interval;
+            }
 
-            document.getElementById('hardReload').checked = hardReload;
+            const hardReloadEl = document.getElementById('hardReload');
+            if (hardReloadEl) hardReloadEl.checked = hardReload;
 
-            updatePresetActive(interval);
+            updatePresetActive(selectedInterval);
             updateUI(isActive);
 
             if (isActive) {
@@ -36,6 +39,8 @@ const AutoReloadModule = (function () {
 
     function updateUI(isActive) {
         const toggleBtn = document.getElementById('toggleBtn');
+        if (!toggleBtn) return;
+
         const statusIndicator = document.getElementById('statusIndicator');
         const statusText = document.getElementById('statusText');
         const countdownContainer = document.getElementById('countdownContainer');
@@ -92,23 +97,44 @@ const AutoReloadModule = (function () {
             const isActive = data.active || false;
 
             if (isActive) {
-                stop(key, data);
+                stop(currentTabId, data);
             } else {
                 start(key);
             }
         });
     }
 
-    function stop(key, data) {
-        chrome.alarms.clear(key);
-        chrome.action.setBadgeText({ text: '', tabId: currentTabId });
-        chrome.storage.local.set({ [key]: { ...data, active: false } }, () => {
-            updateUI(false);
-            if (countdownInterval) clearInterval(countdownInterval);
+    function stop(tabId, data) {
+        return new Promise((resolve) => {
+            const key = `autoReload_${tabId}`;
+            chrome.alarms.clear(key);
+            chrome.action.setBadgeText({ text: '', tabId: tabId });
+            chrome.storage.local.set({ [key]: { ...data, active: false } }, () => {
+                if (tabId === currentTabId) {
+                    updateUI(false);
+                    if (countdownInterval) clearInterval(countdownInterval);
+                }
+                resolve();
+            });
         });
     }
 
-    function start(key) {
+    function deactivate(tabId) {
+        return new Promise((resolve) => {
+            const key = `autoReload_${tabId}`;
+            chrome.storage.local.get([key], (result) => {
+                if (result[key] && result[key].active) {
+                    stop(tabId, result[key]).then(resolve);
+                } else {
+                    resolve();
+                }
+            });
+        });
+    }
+
+    async function start(key) {
+        await UtilityHub.deactivateOthers('auto-reload', currentTabId);
+
         const interval = selectedInterval;
         const hardReload = document.getElementById('hardReload').checked;
         if (interval < 1) { alert('Mínimo 1s'); return; }
@@ -173,6 +199,7 @@ const AutoReloadModule = (function () {
     return {
         init,
         cleanup,
+        deactivate,
         id: 'auto-reload',
         name: 'Auto Reload',
         icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>`,

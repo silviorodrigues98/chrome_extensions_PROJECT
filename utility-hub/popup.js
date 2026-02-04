@@ -130,11 +130,23 @@ const UtilityHub = (function () {
         }
     }
 
+    function deactivateOthers(exceptModuleId, tabId) {
+        const promises = Object.values(modules).map(module => {
+            if (module.id !== exceptModuleId && module.deactivate) {
+                console.log(`Deactivating ${module.name} for tab ${tabId}`);
+                return module.deactivate(tabId);
+            }
+            return Promise.resolve();
+        });
+        return Promise.all(promises);
+    }
+
     return {
         init,
         registerModule,
         showScreen,
-        modules
+        modules,
+        deactivateOthers
     };
 })();
 

@@ -110,6 +110,8 @@ const KeepAliveModule = (function () {
 
     function updateUI(isActive, lastPing, nextPing, pingCount) {
         const toggleBtn = document.getElementById('kaToggleBtn');
+        if (!toggleBtn) return;
+
         const statusEl = document.getElementById('kaStatus');
         const lastPingEl = document.getElementById('kaLastPing');
         const nextPingEl = document.getElementById('kaNextPing');
@@ -189,26 +191,51 @@ const KeepAliveModule = (function () {
             const isActive = data.active || false;
 
             if (isActive) {
-                stop(key, data);
+                stop(currentTabId, data);
             } else {
                 start(key, data);
             }
         });
     }
 
-    function stop(key, data) {
-        chrome.alarms.clear(key);
-        chrome.action.setBadgeText({ text: '', tabId: currentTabId });
-        if (countdownInterval) clearInterval(countdownInterval);
-        chrome.storage.local.set({
-            [key]: { active: false, interval: intervalSeconds, pingCount: data.pingCount || 0 }
-        }, () => {
-            updateUI(false, null, null, data.pingCount || 0);
-            showToast('✋ Keep Alive desativado', 'error');
+    function deactivate(tabId) {
+        return new Promise((resolve) => {
+            const key = `keepAlive_${tabId}`;
+            chrome.storage.local.get([key], (result) => {
+                if (result[key] && result[key].active) {
+                    stop(tabId, result[key]).then(resolve);
+                } else {
+                    resolve();
+                }
+            });
         });
     }
 
-    function start(key, existingData) {
+    function stop(tabId, data) {
+        return new Promise((resolve) => {
+            const key = `keepAlive_${tabId}`;
+            chrome.alarms.clear(key);
+            chrome.action.setBadgeText({ text: '', tabId: tabId });
+
+            // Fix: Use data.interval if available, otherwise fallback to default
+            const savedInterval = data.interval || 120;
+
+            chrome.storage.local.set({
+                [key]: { active: false, interval: savedInterval, pingCount: data.pingCount || 0 }
+            }, () => {
+                if (tabId === currentTabId) {
+                    if (countdownInterval) clearInterval(countdownInterval);
+                    updateUI(false, null, null, data.pingCount || 0);
+                    showToast('✋ Keep Alive desativado', 'error');
+                }
+                resolve();
+            });
+        });
+    }
+
+    async function start(key, existingData) {
+        await UtilityHub.deactivateOthers('keep-alive', currentTabId);
+
         const now = Date.now();
         const nextPing = now + (intervalSeconds * 1000);
         const pingCount = existingData.pingCount || 0;
@@ -367,6 +394,7 @@ const KeepAliveModule = (function () {
     return {
         init,
         cleanup,
+        deactivate,
         id: 'keep-alive',
         name: 'Keep Alive',
         icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>`,

@@ -7,9 +7,9 @@
     - [x] Description: Automatically open the active feature's window (e.g., Auto Reload) instead of the home screen when the extension is clicked.
     - [x] Implementation: Track the active feature state and update the extension's default popup or redirect on load.
 
-- [ ] Feature: Mutually exclusive feature modules
-    - [ ] Description: Ensure that only one feature module can be active at a time to prevent conflicts.
-    - [ ] Implementation: Update the state management logic to automatically deactivate the current feature when a new one is enabled.
+- [x] Feature: Mutually exclusive feature modules
+    - [x] Description: Ensure that only one feature module can be active at a time to prevent conflicts.
+    - [x] Implementation: Update the state management logic to automatically deactivate the current feature when a new one is enabled.
 
 
 
