@@ -1,8 +1,8 @@
 {
     "manifest_version": 3,
-    "name": "Auto Reload",
-    "version": "1.0",
-    "description": "Recarrega a página automaticamente em intervalos configuráveis",
+    "name": "Utility Hub",
+    "version": "1.1",
+    "description": "Uma central de utilitários produtivos para o Chrome",
     "permissions": [
         "storage",
         "activeTab",
