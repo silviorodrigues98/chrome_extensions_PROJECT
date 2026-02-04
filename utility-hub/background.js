@@ -45,7 +45,8 @@ chrome.alarms.onAlarm.addListener((alarm) => {
                 // Execute ping script in the tab
                 chrome.scripting.executeScript({
                     target: { tabId: tabId },
-                    func: () => {
+                    args: [data.soundEnabled || false],
+                    func: (soundEnabled) => {
                         document.dispatchEvent(new MouseEvent('mousemove', {
                             bubbles: true,
                             clientX: Math.random() * window.innerWidth,
@@ -69,6 +70,25 @@ chrome.alarms.onAlarm.addListener((alarm) => {
                             cache: 'no-store'
                         }).catch(() => { });
                         console.log('🔁 Keep-alive ping at', new Date().toLocaleTimeString());
+
+                        // Play sound if enabled
+                        if (soundEnabled) {
+                            try {
+                                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                                const oscillator = ctx.createOscillator();
+                                const gainNode = ctx.createGain();
+                                oscillator.connect(gainNode);
+                                gainNode.connect(ctx.destination);
+                                oscillator.frequency.value = 800;
+                                oscillator.type = 'sine';
+                                gainNode.gain.setValueAtTime(0.1, ctx.currentTime);
+                                gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+                                oscillator.start(ctx.currentTime);
+                                oscillator.stop(ctx.currentTime + 0.1);
+                            } catch (e) {
+                                console.log('Sound not available:', e);
+                            }
+                        }
                     }
                 }).catch(() => { });
 

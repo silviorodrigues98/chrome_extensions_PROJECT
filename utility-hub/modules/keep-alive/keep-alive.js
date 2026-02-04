@@ -97,6 +97,12 @@ const KeepAliveModule = (function () {
                 customInput.value = Math.floor(intervalSeconds / 60);
             }
 
+            // Sync sound toggle
+            const soundToggle = document.getElementById('kaSoundEnabled');
+            if (soundToggle) {
+                soundToggle.checked = data.soundEnabled || false;
+            }
+
             updatePresetActive(intervalSeconds);
             updateUI(isActive, data.lastPing, data.nextPing, pingCount);
 
@@ -210,12 +216,13 @@ const KeepAliveModule = (function () {
         const now = Date.now();
         const nextPing = now + (intervalSeconds * 1000);
         const pingCount = existingData.pingCount || 0;
+        const soundEnabled = document.getElementById('kaSoundEnabled')?.checked || false;
 
         chrome.action.setBadgeText({ text: 'KA', tabId: currentTabId });
         chrome.action.setBadgeBackgroundColor({ color: '#10b981', tabId: currentTabId });
 
         chrome.storage.local.set({
-            [key]: { active: true, interval: intervalSeconds, lastPing: now, nextPing: nextPing, pingCount: pingCount }
+            [key]: { active: true, interval: intervalSeconds, lastPing: now, nextPing: nextPing, pingCount: pingCount, soundEnabled: soundEnabled }
         }, () => {
             chrome.alarms.create(key, {
                 delayInMinutes: intervalSeconds / 60,
@@ -327,6 +334,19 @@ const KeepAliveModule = (function () {
                 updateIntervalDisplay();
                 applyIntervalChange();
             }
+        });
+
+        // Sound toggle listener
+        document.getElementById('kaSoundEnabled').addEventListener('change', (e) => {
+            const soundEnabled = e.target.checked;
+            const key = `keepAlive_${currentTabId}`;
+            chrome.storage.local.get([key], (result) => {
+                if (result[key]?.active) {
+                    chrome.storage.local.set({
+                        [key]: { ...result[key], soundEnabled: soundEnabled }
+                    });
+                }
+            });
         });
     }
 
