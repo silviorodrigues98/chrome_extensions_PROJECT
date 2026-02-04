@@ -1,28 +1,30 @@
-// Verificar e recarregar abas
-setInterval(() => {
-    chrome.tabs.query({}, (tabs) => {
-        tabs.forEach((tab) => {
-            chrome.storage.local.get([`autoReload_${tab.id}`], (result) => {
-                const data = result[`autoReload_${tab.id}`];
+// Escutar alarmes para recarregar abas
+chrome.alarms.onAlarm.addListener((alarm) => {
+    if (alarm.name.startsWith('autoReload_')) {
+        const tabIdStr = alarm.name.split('_')[1];
+        const tabId = parseInt(tabIdStr);
 
-                if (data && data.active && data.nextReload <= Date.now()) {
-                    // Recarregar a aba
-                    chrome.tabs.reload(tab.id);
+        chrome.storage.local.get([alarm.name], (result) => {
+            const data = result[alarm.name];
+            if (data && data.active) {
+                // Recarregar a aba
+                chrome.tabs.reload(tabId, { bypassCache: data.hardReload || false });
 
-                    // Agendar próximo reload
-                    chrome.storage.local.set({
-                        [`autoReload_${tab.id}`]: {
-                            ...data,
-                            nextReload: Date.now() + (data.interval * 1000)
-                        }
-                    });
-                }
-            });
+                // Atualizar o próximo reload no storage para o popup acompanhar
+                chrome.storage.local.set({
+                    [alarm.name]: {
+                        ...data,
+                        nextReload: Date.now() + (data.interval * 1000)
+                    }
+                });
+            }
         });
-    });
-}, 1000);
+    }
+});
 
-// Limpar dados quando aba é fechada
+// Limpar dados e alarmes quando aba é fechada
 chrome.tabs.onRemoved.addListener((tabId) => {
-    chrome.storage.local.remove([`autoReload_${tabId}`]);
+    const key = `autoReload_${tabId}`;
+    chrome.storage.local.remove([key]);
+    chrome.alarms.clear(key);
 });
