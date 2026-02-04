@@ -11,5 +11,6 @@
     - [x] Description: Ensure that only one feature module can be active at a time to prevent conflicts.
     - [x] Implementation: Update the state management logic to automatically deactivate the current feature when a new one is enabled.
 
-
+- [ ] Documentation: Update README.md
+    - [ ] Description: Update the project's README to reflect the recent fixes and features.
 

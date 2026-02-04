@@ -203,9 +203,9 @@ const KeepAliveModule = (function () {
             const key = `keepAlive_${tabId}`;
             chrome.storage.local.get([key], (result) => {
                 if (result[key] && result[key].active) {
-                    stop(tabId, result[key]).then(resolve);
+                    stop(tabId, result[key]).then(wasActive => resolve(wasActive));
                 } else {
-                    resolve();
+                    resolve(false);
                 }
             });
         });
@@ -214,6 +214,7 @@ const KeepAliveModule = (function () {
     function stop(tabId, data) {
         return new Promise((resolve) => {
             const key = `keepAlive_${tabId}`;
+            const wasActive = data && data.active;
             chrome.alarms.clear(key);
             chrome.action.setBadgeText({ text: '', tabId: tabId });
 
@@ -228,7 +229,7 @@ const KeepAliveModule = (function () {
                     updateUI(false, null, null, data.pingCount || 0);
                     showToast('✋ Keep Alive desativado', 'error');
                 }
-                resolve();
+                resolve(wasActive);
             });
         });
     }

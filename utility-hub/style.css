@@ -363,3 +363,32 @@ input:checked+.slider:before {
   color: var(--text-muted);
   margin-top: 5px;
 }
+
+.toast {
+  visibility: hidden;
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--card-bg);
+  border: 1px solid var(--primary);
+  color: var(--text);
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 12px;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  opacity: 0;
+  transition: opacity 0.3s, bottom 0.3s;
+  width: max-content;
+  max-width: 80%;
+  text-align: center;
+}
+
+.toast.show {
+  visibility: visible;
+  opacity: 1;
+  bottom: 30px;
+}

@@ -130,15 +130,42 @@ const UtilityHub = (function () {
         }
     }
 
+    function showToast(message) {
+        const toast = document.getElementById('globalToast');
+        if (!toast) return;
+
+        toast.textContent = message;
+        toast.classList.add('show');
+
+        // Clear previous timeout if exists
+        if (toast.timeoutId) clearTimeout(toast.timeoutId);
+
+        toast.timeoutId = setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3000);
+    }
+
     function deactivateOthers(exceptModuleId, tabId) {
         const promises = Object.values(modules).map(module => {
             if (module.id !== exceptModuleId && module.deactivate) {
                 console.log(`Deactivating ${module.name} for tab ${tabId}`);
-                return module.deactivate(tabId);
+                return module.deactivate(tabId).then(wasActive => {
+                    if (wasActive) {
+                        return module.name;
+                    }
+                    return null;
+                });
             }
-            return Promise.resolve();
+            return Promise.resolve(null);
         });
-        return Promise.all(promises);
+
+        return Promise.all(promises).then(results => {
+            const deactivatedNames = results.filter(name => name !== null);
+            if (deactivatedNames.length > 0) {
+                const names = deactivatedNames.join(', ');
+                showToast(`${names} desativado(s)`);
+            }
+        });
     }
 
     return {
@@ -146,7 +173,8 @@ const UtilityHub = (function () {
         registerModule,
         showScreen,
         modules,
-        deactivateOthers
+        deactivateOthers,
+        showToast
     };
 })();
 

@@ -107,6 +107,9 @@ const AutoReloadModule = (function () {
     function stop(tabId, data) {
         return new Promise((resolve) => {
             const key = `autoReload_${tabId}`;
+            // Check if it was actually active before stopping
+            const wasActive = data && data.active;
+
             chrome.alarms.clear(key);
             chrome.action.setBadgeText({ text: '', tabId: tabId });
             chrome.storage.local.set({ [key]: { ...data, active: false } }, () => {
@@ -114,7 +117,7 @@ const AutoReloadModule = (function () {
                     updateUI(false);
                     if (countdownInterval) clearInterval(countdownInterval);
                 }
-                resolve();
+                resolve(wasActive);
             });
         });
     }
@@ -124,9 +127,9 @@ const AutoReloadModule = (function () {
             const key = `autoReload_${tabId}`;
             chrome.storage.local.get([key], (result) => {
                 if (result[key] && result[key].active) {
-                    stop(tabId, result[key]).then(resolve);
+                    stop(tabId, result[key]).then(wasActive => resolve(wasActive));
                 } else {
-                    resolve();
+                    resolve(false);
                 }
             });
         });
