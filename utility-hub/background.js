@@ -1,7 +1,7 @@
 // Helper para atualizar o badge (ícone)
 function updateBadge(tabId, isActive) {
     if (isActive) {
-        chrome.action.setBadgeText({ text: 'ON', tabId: tabId });
+        chrome.action.setBadgeText({ text: 'AR', tabId: tabId });
         chrome.action.setBadgeBackgroundColor({ color: '#10b981', tabId: tabId });
     } else {
         chrome.action.setBadgeText({ text: '', tabId: tabId });

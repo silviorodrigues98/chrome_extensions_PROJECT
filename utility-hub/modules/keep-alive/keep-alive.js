@@ -4,14 +4,43 @@
 const KeepAliveModule = (function () {
     let currentTabId;
     let intervalSeconds = 120; // 2 minutes default
+    let countdownInterval;
 
     const playIcon = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>`;
     const stopIcon = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12"></rect></svg>`;
 
     function init(tabId) {
         currentTabId = tabId;
+        checkRestrictedPage();
         loadStatus();
         setupEventListeners();
+    }
+
+    function checkRestrictedPage() {
+        chrome.tabs.get(currentTabId, (tab) => {
+            const url = tab.url || '';
+            const isRestricted = url.startsWith('chrome://') ||
+                url.startsWith('edge://') ||
+                url.startsWith('about:') ||
+                url.startsWith('chrome-extension://');
+
+            if (isRestricted) {
+                const infoBox = document.querySelector('.info-box');
+                if (infoBox) {
+                    infoBox.innerHTML = `
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="15" y1="9" x2="9" y2="15"></line>
+                            <line x1="9" y1="9" x2="15" y2="15"></line>
+                        </svg>
+                        <span style="color: #ef4444;">Páginas do navegador não suportam Keep Alive</span>
+                    `;
+                }
+                document.getElementById('kaToggleBtn').disabled = true;
+                document.getElementById('kaToggleBtn').style.opacity = '0.5';
+                document.getElementById('kaToggleBtn').style.cursor = 'not-allowed';
+            }
+        });
     }
 
     function loadStatus() {
@@ -20,16 +49,29 @@ const KeepAliveModule = (function () {
             const data = result[key] || {};
             const isActive = data.active || false;
             intervalSeconds = data.interval || 120;
+            const pingCount = data.pingCount || 0;
+
+            // Sync custom interval input
+            const customInput = document.getElementById('kaCustomInterval');
+            if (customInput) {
+                customInput.value = Math.floor(intervalSeconds / 60);
+            }
 
             updatePresetActive(intervalSeconds);
-            updateUI(isActive, data.lastPing);
+            updateUI(isActive, data.lastPing, data.nextPing, pingCount);
+
+            if (isActive) {
+                startCountdown();
+            }
         });
     }
 
-    function updateUI(isActive, lastPing) {
+    function updateUI(isActive, lastPing, nextPing, pingCount) {
         const toggleBtn = document.getElementById('kaToggleBtn');
         const statusEl = document.getElementById('kaStatus');
         const lastPingEl = document.getElementById('kaLastPing');
+        const nextPingEl = document.getElementById('kaNextPing');
+        const pingCountEl = document.getElementById('kaPingCount');
         const intervalEl = document.getElementById('kaInterval');
         const statusIndicator = document.getElementById('statusIndicator');
         const statusText = document.getElementById('statusText');
@@ -56,6 +98,7 @@ const KeepAliveModule = (function () {
                 statusText.textContent = 'Inativo';
                 statusText.style.color = 'var(--text-muted)';
             }
+            if (nextPingEl) nextPingEl.textContent = '--';
         }
 
         if (lastPing) {
@@ -64,8 +107,37 @@ const KeepAliveModule = (function () {
             lastPingEl.textContent = '--';
         }
 
+        if (pingCountEl) {
+            pingCountEl.textContent = pingCount || 0;
+        }
+
         const mins = Math.floor(intervalSeconds / 60);
         intervalEl.textContent = mins + ' min';
+    }
+
+    function startCountdown() {
+        if (countdownInterval) clearInterval(countdownInterval);
+        const key = `keepAlive_${currentTabId}`;
+
+        function update() {
+            chrome.storage.local.get([key], (result) => {
+                const data = result[key];
+                if (!data || !data.active) {
+                    clearInterval(countdownInterval);
+                    return;
+                }
+                const remaining = Math.max(0, Math.ceil((data.nextPing - Date.now()) / 1000));
+                const nextPingEl = document.getElementById('kaNextPing');
+                if (nextPingEl) {
+                    const mins = Math.floor(remaining / 60);
+                    const secs = remaining % 60;
+                    nextPingEl.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+                }
+            });
+        }
+
+        update();
+        countdownInterval = setInterval(update, 1000);
     }
 
     function toggle() {
@@ -75,82 +147,110 @@ const KeepAliveModule = (function () {
             const isActive = data.active || false;
 
             if (isActive) {
-                stop(key);
+                stop(key, data);
             } else {
-                start(key);
+                start(key, data);
             }
         });
     }
 
-    function stop(key) {
+    function stop(key, data) {
         chrome.alarms.clear(key);
         chrome.action.setBadgeText({ text: '', tabId: currentTabId });
-        chrome.storage.local.set({ [key]: { active: false, interval: intervalSeconds } }, () => {
-            updateUI(false, null);
+        if (countdownInterval) clearInterval(countdownInterval);
+        chrome.storage.local.set({
+            [key]: { active: false, interval: intervalSeconds, pingCount: data.pingCount || 0 }
+        }, () => {
+            updateUI(false, null, null, data.pingCount || 0);
         });
     }
 
-    function start(key) {
+    function start(key, existingData) {
         const now = Date.now();
+        const nextPing = now + (intervalSeconds * 1000);
+        const pingCount = existingData.pingCount || 0;
+
         chrome.action.setBadgeText({ text: 'KA', tabId: currentTabId });
         chrome.action.setBadgeBackgroundColor({ color: '#10b981', tabId: currentTabId });
 
         chrome.storage.local.set({
-            [key]: { active: true, interval: intervalSeconds, lastPing: now }
+            [key]: { active: true, interval: intervalSeconds, lastPing: now, nextPing: nextPing, pingCount: pingCount }
         }, () => {
-            // Create alarm for periodic pings
             chrome.alarms.create(key, {
                 delayInMinutes: intervalSeconds / 60,
                 periodInMinutes: intervalSeconds / 60
             });
 
-            // Execute first ping immediately
             executePing();
-            updateUI(true, now);
+            startCountdown();
+            updateUI(true, now, nextPing, pingCount + 1);
         });
     }
 
     function executePing() {
-        // Inject keep-alive script into the page
+        // Inject enhanced keep-alive script into the page
         chrome.scripting.executeScript({
             target: { tabId: currentTabId },
             func: () => {
-                // Simulate mouse movement
+                // Simulate mouse movement at random positions
                 document.dispatchEvent(new MouseEvent('mousemove', {
                     bubbles: true,
-                    clientX: Math.random() * 100,
-                    clientY: Math.random() * 100
+                    clientX: Math.random() * window.innerWidth,
+                    clientY: Math.random() * window.innerHeight
                 }));
 
-                // Simulate keypress
+                // Simulate keypress (Shift - non-intrusive)
                 document.dispatchEvent(new KeyboardEvent('keydown', {
                     bubbles: true,
                     key: 'Shift'
                 }));
+                document.dispatchEvent(new KeyboardEvent('keyup', {
+                    bubbles: true,
+                    key: 'Shift'
+                }));
+
+                // Simulate small scroll (minimal visual impact)
+                window.scrollBy(0, 1);
+                setTimeout(() => window.scrollBy(0, -1), 50);
+
+                // Focus and blur on document body to simulate activity
+                if (document.body) {
+                    document.body.focus();
+                }
 
                 // Fetch current URL to keep session alive
                 const url = window.location.href;
                 const separator = url.indexOf('?') > -1 ? '&' : '?';
                 fetch(url + separator + 'ka_bust=' + Date.now(), {
                     credentials: 'include',
-                    method: 'GET'
+                    method: 'GET',
+                    cache: 'no-store'
                 }).catch(() => { });
 
                 console.log('🔁 Keep-alive ping executed at', new Date().toLocaleTimeString());
             }
+        }).catch((err) => {
+            console.warn('Keep-alive script injection failed:', err);
         });
 
-        // Update last ping time
+        // Update storage with new ping count and times
         const key = `keepAlive_${currentTabId}`;
         const now = Date.now();
+        const nextPing = now + (intervalSeconds * 1000);
+
         chrome.storage.local.get([key], (result) => {
             const data = result[key] || {};
+            const newCount = (data.pingCount || 0) + 1;
             chrome.storage.local.set({
-                [key]: { ...data, lastPing: now }
+                [key]: { ...data, lastPing: now, nextPing: nextPing, pingCount: newCount }
             });
+
+            const pingCountEl = document.getElementById('kaPingCount');
+            if (pingCountEl) pingCountEl.textContent = newCount;
         });
 
-        document.getElementById('kaLastPing').textContent = new Date(now).toLocaleTimeString();
+        const lastPingEl = document.getElementById('kaLastPing');
+        if (lastPingEl) lastPingEl.textContent = new Date(now).toLocaleTimeString();
     }
 
     function updatePresetActive(value) {
@@ -173,7 +273,6 @@ const KeepAliveModule = (function () {
             });
         });
 
-        // Custom interval input
         document.getElementById('kaCustomInterval').addEventListener('change', (e) => {
             const mins = parseInt(e.target.value);
             if (mins >= 1 && mins <= 60) {
@@ -194,20 +293,22 @@ const KeepAliveModule = (function () {
         const key = `keepAlive_${currentTabId}`;
         chrome.storage.local.get([key], (result) => {
             if (result[key]?.active) {
+                const nextPing = Date.now() + (intervalSeconds * 1000);
                 chrome.alarms.clear(key);
                 chrome.alarms.create(key, {
                     delayInMinutes: intervalSeconds / 60,
                     periodInMinutes: intervalSeconds / 60
                 });
                 chrome.storage.local.set({
-                    [key]: { ...result[key], interval: intervalSeconds }
+                    [key]: { ...result[key], interval: intervalSeconds, nextPing: nextPing }
                 });
+                startCountdown();
             }
         });
     }
 
     function cleanup() {
-        // Nothing to clean up in popup context
+        if (countdownInterval) clearInterval(countdownInterval);
     }
 
     return {

@@ -114,7 +114,7 @@ const AutoReloadModule = (function () {
         if (interval < 1) { alert('Mínimo 1s'); return; }
 
         const nextReload = Date.now() + (interval * 1000);
-        chrome.action.setBadgeText({ text: 'ON', tabId: currentTabId });
+        chrome.action.setBadgeText({ text: 'AR', tabId: currentTabId });
         chrome.action.setBadgeBackgroundColor({ color: '#10b981', tabId: currentTabId });
 
         chrome.storage.local.set({
