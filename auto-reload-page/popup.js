@@ -96,6 +96,7 @@ document.getElementById('toggleBtn').addEventListener('click', () => {
         if (isActive) {
             // Parar
             chrome.alarms.clear(key);
+            chrome.action.setBadgeText({ text: '', tabId: currentTabId });
             chrome.storage.local.set({
                 [key]: { ...data, active: false }
             }, () => {
@@ -113,6 +114,9 @@ document.getElementById('toggleBtn').addEventListener('click', () => {
             }
 
             const nextReload = Date.now() + (interval * 1000);
+
+            chrome.action.setBadgeText({ text: 'ON', tabId: currentTabId });
+            chrome.action.setBadgeBackgroundColor({ color: '#10b981', tabId: currentTabId });
 
             chrome.storage.local.set({
                 [key]: {
@@ -191,6 +195,10 @@ function applyChanges(interval, hardReload) {
             nextReload: nextReload
         }
     }, () => {
+        // Garantir badge ativo
+        chrome.action.setBadgeText({ text: 'ON', tabId: currentTabId });
+        chrome.action.setBadgeBackgroundColor({ color: '#10b981', tabId: currentTabId });
+
         // Recriar alarme com novo intervalo
         chrome.alarms.create(key, {
             delayInMinutes: interval / 60,
