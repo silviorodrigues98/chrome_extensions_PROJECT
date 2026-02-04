@@ -1,175 +1,122 @@
-let currentTabId;
-let countdownInterval;
+// Utility Hub Core - Lightweight Module Orchestrator
 
-const playIcon = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>`;
-const stopIcon = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12"></rect></svg>`;
+const UtilityHub = (function () {
+    const modules = {};
+    let currentTabId;
+    let currentModule = null;
 
-// --- Core Hub Logic ---
-
-function showScreen(screenId) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.getElementById(screenId).classList.add('active');
-
-    const backBtn = document.getElementById('backBtn');
-    const headerTitle = document.getElementById('headerTitle');
-    const statusDot = document.getElementById('statusIndicator');
-
-    if (screenId === 'homeScreen') {
-        backBtn.style.display = 'none';
-        headerTitle.textContent = 'Utility Hub';
-        statusDot.style.display = 'none';
-    } else {
-        backBtn.style.display = 'flex';
-        statusDot.style.display = 'block';
-        if (screenId === 'reloadScreen') headerTitle.textContent = 'Auto Reload';
-    }
-}
-
-document.getElementById('btnReloadTool').addEventListener('click', () => showScreen('reloadScreen'));
-document.getElementById('backBtn').addEventListener('click', () => showScreen('homeScreen'));
-
-// --- Auto Reload Module ---
-
-// Obter informações da aba atual
-chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    if (tabs && tabs[0]) {
-        currentTabId = tabs[0].id;
-        loadReloadStatus();
-    }
-});
-
-function loadReloadStatus() {
-    const key = `autoReload_${currentTabId}`;
-    chrome.storage.local.get([key], (result) => {
-        const data = result[key] || {};
-        const isActive = data.active || false;
-        const interval = data.interval || 60;
-        const hardReload = data.hardReload || false;
-
-        document.getElementById('interval').value = interval;
-        document.getElementById('hardReload').checked = hardReload;
-
-        updatePresetActive(interval);
-        updateReloadUI(isActive);
-
-        if (isActive) {
-            startCountdown();
+    async function init() {
+        // Get current tab
+        const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+        if (tabs && tabs[0]) {
+            currentTabId = tabs[0].id;
         }
-    });
-}
 
-function updateReloadUI(isActive) {
-    const toggleBtn = document.getElementById('toggleBtn');
-    const statusIndicator = document.getElementById('statusIndicator');
-    const statusText = document.getElementById('statusText');
-    const countdownContainer = document.getElementById('countdownContainer');
-    const idleState = document.getElementById('idleState');
-
-    if (isActive) {
-        toggleBtn.innerHTML = `${stopIcon} <span>Parar</span>`;
-        toggleBtn.classList.add('active');
-        statusIndicator.classList.add('active');
-        statusText.textContent = 'Ativo';
-        statusText.style.color = 'var(--success)';
-        countdownContainer.style.display = 'block';
-        idleState.style.display = 'none';
-    } else {
-        toggleBtn.innerHTML = `${playIcon} <span>Iniciar</span>`;
-        toggleBtn.classList.remove('active');
-        statusIndicator.classList.remove('active');
-        statusText.textContent = 'Inativo';
-        statusText.style.color = 'var(--text-muted)';
-        countdownContainer.style.display = 'none';
-        idleState.style.display = 'block';
+        setupNavigation();
+        renderHome();
     }
-}
 
-function startCountdown() {
-    if (countdownInterval) clearInterval(countdownInterval);
-    const key = `autoReload_${currentTabId}`;
+    function registerModule(module) {
+        modules[module.id] = module;
+        console.log(`Module registered: ${module.name}`);
+    }
 
-    function update() {
-        chrome.storage.local.get([key], (result) => {
-            const data = result[key];
-            if (!data || !data.active) {
-                clearInterval(countdownInterval);
-                return;
+    function setupNavigation() {
+        document.getElementById('backBtn').addEventListener('click', () => {
+            if (currentModule && currentModule.cleanup) {
+                currentModule.cleanup();
             }
-            const remaining = Math.max(0, Math.ceil((data.nextReload - Date.now()) / 1000));
-            const countdownEl = document.getElementById('countdown');
-            if (countdownEl) countdownEl.textContent = remaining;
+            currentModule = null;
+            showScreen('homeScreen');
         });
     }
 
-    update();
-    countdownInterval = setInterval(update, 1000);
-}
+    function showScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
 
-document.getElementById('toggleBtn').addEventListener('click', () => {
-    const key = `autoReload_${currentTabId}`;
-    chrome.storage.local.get([key], (result) => {
-        const data = result[key] || {};
-        const isActive = data.active || false;
+        const backBtn = document.getElementById('backBtn');
+        const headerTitle = document.getElementById('headerTitle');
+        const statusDot = document.getElementById('statusIndicator');
 
-        if (isActive) {
-            chrome.alarms.clear(key);
-            chrome.action.setBadgeText({ text: '', tabId: currentTabId });
-            chrome.storage.local.set({ [key]: { ...data, active: false } }, () => {
-                updateReloadUI(false);
-                if (countdownInterval) clearInterval(countdownInterval);
-            });
+        if (screenId === 'homeScreen') {
+            backBtn.style.display = 'none';
+            headerTitle.textContent = 'Utility Hub';
+            statusDot.style.display = 'none';
         } else {
-            const interval = parseInt(document.getElementById('interval').value);
-            const hardReload = document.getElementById('hardReload').checked;
-            if (interval < 1) { alert('Mínimo 1s'); return; }
-
-            const nextReload = Date.now() + (interval * 1000);
-            chrome.action.setBadgeText({ text: 'ON', tabId: currentTabId });
-            chrome.action.setBadgeBackgroundColor({ color: '#10b981', tabId: currentTabId });
-
-            chrome.storage.local.set({
-                [key]: { active: true, interval, hardReload, nextReload }
-            }, () => {
-                chrome.alarms.create(key, { delayInMinutes: interval / 60, periodInMinutes: interval / 60 });
-                updateReloadUI(true);
-                startCountdown();
-            });
+            backBtn.style.display = 'flex';
+            statusDot.style.display = 'block';
         }
-    });
-});
+    }
 
-// Presets & Listeners (Auto Reload)
-document.querySelectorAll('.preset-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        const val = btn.getAttribute('data-value');
-        document.getElementById('interval').value = val;
-        updatePresetActive(val);
-        const key = `autoReload_${currentTabId}`;
-        chrome.storage.local.get([key], (result) => {
-            if (result[key]?.active) applyReloadChanges(parseInt(val), document.getElementById('hardReload').checked);
+    function renderHome() {
+        const grid = document.getElementById('moduleGrid');
+        grid.innerHTML = '';
+
+        // Render registered modules
+        Object.values(modules).forEach(module => {
+            const card = document.createElement('div');
+            card.className = 'feature-card';
+            card.innerHTML = `
+                <div class="feature-icon">${module.icon}</div>
+                <div class="feature-name">${module.name}</div>
+                <div class="feature-desc">${module.description}</div>
+            `;
+            card.addEventListener('click', () => loadModule(module));
+            grid.appendChild(card);
         });
-    });
-});
 
-function updatePresetActive(value) {
-    document.querySelectorAll('.preset-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.getAttribute('data-value') == value);
-    });
-}
+        // Add placeholder for future modules
+        const placeholder = document.createElement('div');
+        placeholder.className = 'feature-card';
+        placeholder.style.opacity = '0.5';
+        placeholder.style.cursor = 'default';
+        placeholder.innerHTML = `
+            <div class="feature-icon" style="color: var(--text-muted);">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="12" y1="8" x2="12" y2="16"></line>
+                    <line x1="8" y1="12" x2="16" y2="12"></line>
+                </svg>
+            </div>
+            <div class="feature-name">Em breve...</div>
+            <div class="feature-desc">Mais ferramentas vindo aí</div>
+        `;
+        grid.appendChild(placeholder);
+    }
 
-document.getElementById('interval').addEventListener('input', (e) => updatePresetActive(e.target.value));
-document.getElementById('hardReload').addEventListener('change', (e) => {
-    const key = `autoReload_${currentTabId}`;
-    chrome.storage.local.get([key], (result) => {
-        if (result[key]?.active) applyReloadChanges(result[key].interval, e.target.checked);
-    });
-});
+    async function loadModule(module) {
+        currentModule = module;
 
-function applyReloadChanges(interval, hardReload) {
-    const key = `autoReload_${currentTabId}`;
-    const nextReload = Date.now() + (interval * 1000);
-    chrome.storage.local.set({ [key]: { active: true, interval, hardReload, nextReload } }, () => {
-        chrome.alarms.create(key, { delayInMinutes: interval / 60, periodInMinutes: interval / 60 });
-        startCountdown();
-    });
-}
+        // Update header
+        document.getElementById('headerTitle').textContent = module.name;
+
+        // Load module HTML template
+        const moduleScreen = document.getElementById('moduleScreen');
+        try {
+            const response = await fetch(`modules/${module.id}/${module.id}.html`);
+            const html = await response.text();
+            moduleScreen.innerHTML = html;
+        } catch (e) {
+            console.error(`Failed to load module template: ${module.id}`, e);
+            moduleScreen.innerHTML = '<p style="color: var(--error);">Erro ao carregar módulo</p>';
+        }
+
+        showScreen('moduleScreen');
+
+        // Initialize module
+        if (module.init) {
+            module.init(currentTabId);
+        }
+    }
+
+    return {
+        init,
+        registerModule,
+        showScreen,
+        modules
+    };
+})();
+
+// Initialize on DOM ready
+document.addEventListener('DOMContentLoaded', () => UtilityHub.init());

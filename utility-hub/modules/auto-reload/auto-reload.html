@@ -1,0 +1,41 @@
+<!-- Auto Reload Module Template -->
+<div class="card">
+    <label class="control-label" for="interval">Intervalo de Recarga</label>
+    <div class="input-group">
+        <input type="number" id="interval" min="1" value="60">
+        <span class="unit">segundos</span>
+    </div>
+
+    <div class="presets">
+        <button class="preset-btn" data-value="30">30s</button>
+        <button class="preset-btn" data-value="60">1m</button>
+        <button class="preset-btn" data-value="300">5m</button>
+        <button class="preset-btn" data-value="600">10m</button>
+    </div>
+
+    <div class="toggle-container">
+        <span class="control-label" style="margin: 0;">Hard Reload (ignorar cache)</span>
+        <label class="switch">
+            <input type="checkbox" id="hardReload">
+            <span class="slider"></span>
+        </label>
+    </div>
+</div>
+
+<div class="card info-display">
+    <div id="countdownContainer" style="display: none; text-align: center;">
+        <div class="countdown-label">Próximo reload em</div>
+        <div class="countdown-timer"><span id="countdown">--</span>s</div>
+    </div>
+    <div id="idleState" style="color: var(--text-muted); font-size: 13px;">
+        Aguardando início...
+    </div>
+</div>
+
+<button id="toggleBtn" class="main-btn">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+        stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+    </svg>
+    <span>Iniciar</span>
+</button>
