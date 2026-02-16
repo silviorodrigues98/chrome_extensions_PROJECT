@@ -2,7 +2,7 @@
     "manifest_version": 3,
     "name": "Utility Hub",
     "version": "1.1",
-    "description": "Uma central de utilitários produtivos para o Chrome",
+    "description": "The ultimate productivity hub for Chrome. Auto refresh, keep alive, and more.",
     "permissions": [
         "storage",
         "activeTab",
