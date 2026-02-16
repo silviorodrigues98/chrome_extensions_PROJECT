@@ -17,3 +17,8 @@
 - [ ] Feature: DOM change monitor
     - [ ] Description: Create a module to monitor specific page elements via CSS selectors and send notifications when updates occur.
     - [ ] Use Case: Monitoring new messages in web-based chat applications like WhatsApp.
+
+- [ ] Feature: WhatsApp Message Signature
+    - [ ] Description: Automatically append a custom signature to the end of all outgoing messages on WhatsApp Web.
+    - [ ] Example: `─ ꜱɪʟᴠɪᴏ`
+
