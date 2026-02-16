@@ -1,0 +1,57 @@
+<div class="monitor-container" style="padding: 10px;">
+    <div class="control-panel"
+        style="margin-bottom: 15px; text-align: center; display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: flex; gap: 8px;">
+            <button id="selectElementBtn" class="secondary-btn"
+                style="flex: 1; padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); cursor: pointer; transition: all 0.2s; background: rgba(255,255,255,0.05); color: var(--text-color);">
+                🔍 Selecionar Elemento
+            </button>
+            <button id="testSoundBtn" class="secondary-btn"
+                style="width: 40px; padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); cursor: pointer; background: rgba(255,255,255,0.05); color: var(--text-color);"
+                title="Testar Alarme">
+                🔊
+            </button>
+        </div>
+
+        <div id="selectedElementDisplay"
+            style="font-size: 11px; color: var(--text-muted); padding: 5px; background: rgba(0,0,0,0.2); border-radius: 4px; word-break: break-all; min-height: 20px; display: none;">
+            Nenhum elemento selecionado
+        </div>
+
+        <button id="toggleMonitorBtn" class="primary-btn"
+            style="width: 100%; padding: 10px; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; transition: all 0.2s;"
+            disabled>
+            Iniciar Monitoramento
+        </button>
+    </div>
+
+    <div class="stats-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+        <div class="stat-card"
+            style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; text-align: center;">
+            <div class="stat-value" id="addedNodesCount"
+                style="font-size: 24px; font-weight: bold; color: var(--accent-color);">0</div>
+            <div class="stat-label" style="font-size: 11px; color: var(--text-muted);">Adições</div>
+        </div>
+        <div class="stat-card"
+            style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; text-align: center;">
+            <div class="stat-value" id="removedNodesCount"
+                style="font-size: 24px; font-weight: bold; color: var(--error);">0</div>
+            <div class="stat-label" style="font-size: 11px; color: var(--text-muted);">Remoções</div>
+        </div>
+        <div class="stat-card"
+            style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; text-align: center;">
+            <div class="stat-value" id="attrChangesCount" style="font-size: 24px; font-weight: bold; color: #ffb74d;">0
+            </div>
+            <div class="stat-label" style="font-size: 11px; color: var(--text-muted);">Atributos</div>
+        </div>
+        <div class="stat-card"
+            style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; text-align: center;">
+            <div class="stat-value" id="totalChangesCount" style="font-size: 24px; font-weight: bold;">0</div>
+            <div class="stat-label" style="font-size: 11px; color: var(--text-muted);">Total</div>
+        </div>
+    </div>
+
+    <div class="status-msg" id="monitorStatus" style="font-size: 12px; text-align: center; color: var(--text-muted);">
+        Monitor parado
+    </div>
+</div>
