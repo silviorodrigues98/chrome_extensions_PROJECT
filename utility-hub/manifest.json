@@ -17,5 +17,18 @@
     },
     "background": {
         "service_worker": "background.js"
-    }
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "https://web.whatsapp.com/*"
+            ],
+            "js": [
+                "modules/whatsapp-signature/content.js"
+            ],
+            "css": [
+                "modules/whatsapp-signature/content.css"
+            ]
+        }
+    ]
 }

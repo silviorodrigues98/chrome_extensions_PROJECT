@@ -1,0 +1,34 @@
+/* Signature button styles for WhatsApp Web injection */
+.hub-sig-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    color: #8696a0; /* Default WhatsApp icon color */
+    transition: background-color 0.2s, color 0.2s;
+    margin: 0 4px;
+}
+
+.hub-sig-btn:hover {
+    background-color: rgba(134, 150, 160, 0.1);
+    color: #00a884; /* WhatsApp brand green */
+}
+
+.hub-sig-btn svg {
+    width: 22px;
+    height: 22px;
+}
+
+/* Dark mode overrides (WhatsApp handles body.dark usually) */
+body.dark .hub-sig-btn {
+    color: #8696a0;
+}
+
+body.dark .hub-sig-btn:hover {
+    background-color: rgba(134, 150, 160, 0.15);
+    color: #00a884;
+}

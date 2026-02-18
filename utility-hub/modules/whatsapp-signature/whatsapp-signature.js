@@ -42,17 +42,13 @@ const WhatsAppSignatureModule = (function () {
     }
 
     function loadStatus() {
-        const key = `whatsappSig_${currentTabId}`;
-        chrome.storage.local.get([key], (result) => {
-            const data = result[key] || {};
-            if (data.text) {
-                signatureText = data.text;
+        // Use a global key for the signature so content scripts can access it easily
+        chrome.storage.local.get(['whatsapp_global_signature'], (result) => {
+            if (result.whatsapp_global_signature) {
+                signatureText = result.whatsapp_global_signature;
                 const textInput = document.getElementById('sigText');
                 if (textInput) textInput.value = signatureText;
             }
-            const autoAppend = data.autoAppend || false;
-            const autoAppendEl = document.getElementById('sigAutoAppend');
-            if (autoAppendEl) autoAppendEl.checked = autoAppend;
         });
     }
 
@@ -66,22 +62,9 @@ const WhatsAppSignatureModule = (function () {
         if (textInput) {
             textInput.addEventListener('input', (e) => {
                 signatureText = e.target.value;
-                saveStatus();
+                chrome.storage.local.set({ 'whatsapp_global_signature': signatureText });
             });
         }
-
-        const autoAppendEl = document.getElementById('sigAutoAppend');
-        if (autoAppendEl) {
-            autoAppendEl.addEventListener('change', saveStatus);
-        }
-    }
-
-    function saveStatus() {
-        const key = `whatsappSig_${currentTabId}`;
-        const autoAppend = document.getElementById('sigAutoAppend')?.checked || false;
-        chrome.storage.local.set({
-            [key]: { text: signatureText, autoAppend: autoAppend }
-        });
     }
 
     function appendSignature() {
