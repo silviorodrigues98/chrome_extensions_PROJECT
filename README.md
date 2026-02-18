@@ -24,6 +24,13 @@ Prevent session timeouts and keep your status connected on varied web services.
 - **Sound Alert**: Optional audio feedback when a keep-alive ping occurs (good for debugging or monitoring).
 - **Background Run**: Works even when the tab is not in focus.
 
+### ✍️ WhatsApp Signature
+Streamline your professional or personal messaging on WhatsApp Web.
+- **Floating Button**: A discreet "pen" icon is injected directly into the WhatsApp chat footer for instant access.
+- **Global Shortcut**: Use `Alt + S` to quickly append your signature without leaving the keyboard.
+- **Custom Text**: Easily update your signature text through the Utility Hub popup.
+- **Robust Insertion**: Uses advanced DOM manipulation to work reliably with WhatsApp's modern Lexical editor.
+
 ### 🔜 Coming Soon
 We are actively building new modules! Planned features include:
 - **Form Filler**: Save and fill repetitive forms.

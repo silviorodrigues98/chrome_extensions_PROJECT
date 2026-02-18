@@ -19,6 +19,9 @@
     - [ ] Use Case: Monitoring new messages in web-based chat applications like WhatsApp.
 
 - [x] Feature: WhatsApp Message Signature
-    - [x] Description: Automatically append a custom signature to the end of all outgoing messages on WhatsApp Web.
+    - [x] Description: Manually or automatically append a custom signature to outgoing messages on WhatsApp Web.
+    - [x] Implementation: Floating button in chat footer and `Alt + S` keyboard shortcut.
     - [x] Example: `─ ꜱɪʟᴠɪᴏ`
-    - [ ] Workflow: User clicks the button to insert the signature (e.g., `─ ꜱɪʟᴠɪᴏ`) into the input field prior to manual transmission.
+
+- [ ] Feature: Multi-signature support
+    - [ ] Description: Allow users to save multiple signatures and choose which one to use via a dropdown or switch.
