@@ -64,12 +64,8 @@
     }
 
     async function appendSignatureToInput() {
-        console.log('Utility Hub: Floating button clicked. Fetching signature...');
-
         const result = await chrome.storage.local.get(['whatsapp_global_signature']);
         const sig = result.whatsapp_global_signature || '─ ꜱɪʟᴠɪᴏ';
-
-        console.log('Utility Hub: Signature text length:', sig.length);
 
         const selectors = [
             '#main footer div[contenteditable="true"][role="textbox"]',
@@ -83,13 +79,11 @@
         for (const selector of selectors) {
             input = document.querySelector(selector);
             if (input) {
-                console.log('Utility Hub: Found input using selector:', selector);
                 break;
             }
         }
 
         if (!input) {
-            console.error('Utility Hub: Message input field not found');
             return;
         }
 
@@ -100,12 +94,9 @@
         const prefix = (initialLength > 0) ? '\n\n' : '';
         const fullSig = prefix + sig;
 
-        console.log('Utility Hub: Initial text length:', initialLength);
-
         const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
         const tryInsert = async (methodName, action) => {
-            console.log(`Utility Hub: Trying method: ${methodName}`);
             input.focus();
 
             // Set cursor to end
@@ -125,13 +116,11 @@
             const currentNormalized = getNormalizedText(input);
 
             if (currentText.length > initialLength || currentNormalized !== initialTextNormalized || currentText.includes(sig)) {
-                console.log(`Utility Hub: Success using ${methodName}`);
                 ['input', 'change', 'keydown', 'keyup'].forEach(type => {
                     input.dispatchEvent(new Event(type, { bubbles: true }));
                 });
                 return true;
             }
-            console.warn(`Utility Hub: ${methodName} seemed to fail`);
             return false;
         };
 
@@ -139,7 +128,7 @@
         if (await tryInsert('execCommand', () => {
             try {
                 document.execCommand('insertText', false, fullSig);
-            } catch (e) { console.error(e); }
+            } catch (e) { }
         })) return;
 
         // Method 2: InputEvent
@@ -154,7 +143,6 @@
         })) return;
 
         // Method 3: Direct Value Assignment
-        console.log('Utility Hub: Final fallback: Direct manipulation');
         const prevValue = input.innerText || '';
         input.innerText = prevValue + fullSig;
         input.dispatchEvent(new Event('input', { bubbles: true }));
