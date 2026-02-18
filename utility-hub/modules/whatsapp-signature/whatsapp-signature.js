@@ -43,11 +43,15 @@ const WhatsAppSignatureModule = (function () {
 
     function loadStatus() {
         // Use a global key for the signature so content scripts can access it easily
-        chrome.storage.local.get(['whatsapp_global_signature'], (result) => {
+        chrome.storage.local.get(['whatsapp_global_signature', 'whatsapp_auto_enter'], (result) => {
             if (result.whatsapp_global_signature) {
                 signatureText = result.whatsapp_global_signature;
                 const textInput = document.getElementById('sigText');
                 if (textInput) textInput.value = signatureText;
+            }
+            if (result.whatsapp_auto_enter !== undefined) {
+                const autoEnterEl = document.getElementById('sigAutoEnter');
+                if (autoEnterEl) autoEnterEl.checked = result.whatsapp_auto_enter;
             }
         });
     }
@@ -63,6 +67,13 @@ const WhatsAppSignatureModule = (function () {
             textInput.addEventListener('input', (e) => {
                 signatureText = e.target.value;
                 chrome.storage.local.set({ 'whatsapp_global_signature': signatureText });
+            });
+        }
+
+        const autoEnterEl = document.getElementById('sigAutoEnter');
+        if (autoEnterEl) {
+            autoEnterEl.addEventListener('change', (e) => {
+                chrome.storage.local.set({ 'whatsapp_auto_enter': e.target.checked });
             });
         }
     }
