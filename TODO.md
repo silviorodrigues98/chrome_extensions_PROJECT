@@ -31,8 +31,8 @@
     - [x] Description: Automatically append the signature when the Enter key is pressed to send a message.
     - [x] Implementation: Intercept the Enter key event, append the signature to the input field, and then trigger the send action.
 
-- [ ] Feature: Visual indicator for active signature
-    - [ ] Description: Update the extension icon (e.g., badge or color) to indicate when the auto-append signature module is active.
+- [x] Feature: Visual indicator for active signature
+    - [x] Description: Update the extension icon (e.g., badge or color) to indicate when the auto-append signature module is active.
     
-- [ ] Logic: Restricted activation for WhatsApp
-    - [ ] Description: Ensure the signature feature and its UI elements are only enabled when the active tab is `web.whatsapp.com`.
+- [x] Logic: Restricted activation for WhatsApp
+    - [x] Description: Ensure the signature feature and its UI elements are only enabled when the active tab is `web.whatsapp.com`.

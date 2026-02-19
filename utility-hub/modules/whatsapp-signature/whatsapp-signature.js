@@ -17,8 +17,12 @@ const WhatsAppSignatureModule = (function () {
             const url = tab.url || '';
             const isWhatsApp = url.includes('web.whatsapp.com');
 
+            const infoBox = document.querySelector('.info-box');
+            const appendBtn = document.getElementById('sigAppendBtn');
+            const textInput = document.getElementById('sigText');
+            const autoEnterEl = document.getElementById('sigAutoEnter');
+
             if (!isWhatsApp) {
-                const infoBox = document.querySelector('.info-box');
                 if (infoBox) {
                     infoBox.style.background = 'rgba(239, 68, 68, 0.1)';
                     infoBox.style.borderColor = 'rgba(239, 68, 68, 0.2)';
@@ -31,11 +35,51 @@ const WhatsAppSignatureModule = (function () {
                         <span style="color: #ef4444;">Este recurso só funciona no WhatsApp Web</span>
                     `;
                 }
-                const appendBtn = document.getElementById('sigAppendBtn');
+
+                // Disable all interactions
                 if (appendBtn) {
                     appendBtn.disabled = true;
                     appendBtn.style.opacity = '0.5';
                     appendBtn.style.cursor = 'not-allowed';
+                }
+                if (textInput) {
+                    textInput.disabled = true;
+                    textInput.style.opacity = '0.5';
+                    textInput.style.cursor = 'not-allowed';
+                }
+                if (autoEnterEl) {
+                    autoEnterEl.disabled = true;
+                    autoEnterEl.parentElement.style.opacity = '0.5';
+                    autoEnterEl.parentElement.style.cursor = 'not-allowed';
+                }
+            } else {
+                if (infoBox) {
+                    infoBox.style.background = 'rgba(16, 185, 129, 0.1)';
+                    infoBox.style.borderColor = 'rgba(16, 185, 129, 0.2)';
+                    infoBox.innerHTML = `
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
+                        <span style="color: #10b981;">Conectado ao WhatsApp Web</span>
+                    `;
+                }
+
+                // Enable interactions
+                if (appendBtn) {
+                    appendBtn.disabled = false;
+                    appendBtn.style.opacity = '1';
+                    appendBtn.style.cursor = 'pointer';
+                }
+                if (textInput) {
+                    textInput.disabled = false;
+                    textInput.style.opacity = '1';
+                    textInput.style.cursor = 'text';
+                }
+                if (autoEnterEl) {
+                    autoEnterEl.disabled = false;
+                    autoEnterEl.parentElement.style.opacity = '1';
+                    autoEnterEl.parentElement.style.cursor = 'pointer';
                 }
             }
         });

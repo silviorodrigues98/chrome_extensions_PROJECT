@@ -1,11 +1,39 @@
 // Helper para atualizar o badge (ícone)
-function updateBadge(tabId, isActive) {
-    if (isActive) {
-        chrome.action.setBadgeText({ text: 'AR', tabId: tabId });
+function updateBadge(tabId, label, isActive) {
+    if (isActive && label) {
+        chrome.action.setBadgeText({ text: label, tabId: tabId });
         chrome.action.setBadgeBackgroundColor({ color: '#10b981', tabId: tabId });
     } else {
-        chrome.action.setBadgeText({ text: '', tabId: tabId });
+        // Se desativar, temos que checar se outro módulo está ativo antes de limpar
+        checkAndRestoreBadge(tabId);
     }
+}
+
+function checkAndRestoreBadge(tabId) {
+    chrome.storage.local.get(null, (items) => {
+        // Prioridade: Auto Reload > Keep Alive > WhatsApp Sig
+        if (items[`autoReload_${tabId}`] && items[`autoReload_${tabId}`].active) {
+            chrome.action.setBadgeText({ text: 'AR', tabId: tabId });
+            chrome.action.setBadgeBackgroundColor({ color: '#10b981', tabId: tabId });
+        } else if (items[`keepAlive_${tabId}`] && items[`keepAlive_${tabId}`].active) {
+            chrome.action.setBadgeText({ text: 'KA', tabId: tabId });
+            chrome.action.setBadgeBackgroundColor({ color: '#10b981', tabId: tabId });
+        } else if (items.whatsapp_auto_enter) {
+            // WhatsApp Sig é global ou por aba? 
+            // O código atual do content.js usa um valor global 'whatsapp_auto_enter'.
+            // Vamos checar se a aba atual é WhatsApp.
+            chrome.tabs.get(tabId, (tab) => {
+                if (tab && tab.url && tab.url.includes('web.whatsapp.com')) {
+                    chrome.action.setBadgeText({ text: 'SIG', tabId: tabId });
+                    chrome.action.setBadgeBackgroundColor({ color: '#10b981', tabId: tabId });
+                } else {
+                    chrome.action.setBadgeText({ text: '', tabId: tabId });
+                }
+            });
+        } else {
+            chrome.action.setBadgeText({ text: '', tabId: tabId });
+        }
+    });
 }
 
 // Escutar alarmes para recarregar abas
@@ -108,9 +136,20 @@ chrome.alarms.onAlarm.addListener((alarm) => {
                 });
 
                 // Update badge
-                chrome.action.setBadgeText({ text: 'KA', tabId: tabId });
-                chrome.action.setBadgeBackgroundColor({ color: '#10b981', tabId: tabId });
+                updateBadge(tabId, 'KA', true);
             }
+        });
+    }
+});
+
+// Escutar mudanças no storage para o WhatsApp Signature
+chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === 'local' && changes.whatsapp_auto_enter) {
+        const isActive = changes.whatsapp_auto_enter.newValue;
+        chrome.tabs.query({ url: 'https://web.whatsapp.com/*' }, (tabs) => {
+            tabs.forEach(tab => {
+                updateBadge(tab.id, 'SIG', isActive);
+            });
         });
     }
 });
@@ -120,26 +159,17 @@ chrome.runtime.onStartup.addListener(() => restoreAllBadges());
 chrome.runtime.onInstalled.addListener(() => restoreAllBadges());
 
 function restoreAllBadges() {
-    chrome.storage.local.get(null, (items) => {
-        for (const [key, data] of Object.entries(items)) {
-            if (key.startsWith('autoReload_') && data.active) {
-                const tabId = parseInt(key.split('_')[1]);
-                updateBadge(tabId, true);
-            }
-        }
+    chrome.tabs.query({}, (tabs) => {
+        tabs.forEach(tab => {
+            checkAndRestoreBadge(tab.id);
+        });
     });
 }
 
 // Garantir que o badge persista após reload ou navegação
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     if (changeInfo.status === 'complete') {
-        const key = `autoReload_${tabId}`;
-        chrome.storage.local.get([key], (result) => {
-            const data = result[key];
-            if (data && data.active) {
-                updateBadge(tabId, true);
-            }
-        });
+        checkAndRestoreBadge(tabId);
     }
 });
 
