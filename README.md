@@ -1,75 +1,48 @@
-# 🛠️ Utility Hub
+# Utility Hub
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Version](https://img.shields.io/badge/version-1.1-green.svg)
-![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)
+![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
+![Chrome](https://img.shields.io/badge/Chrome_Extension-4285F4?style=for-the-badge&logo=google-chrome&logoColor=white)
+![License](https://img.shields.io/badge/Licen%C3%A7a-MIT-green?style=for-the-badge)
 
-**Utility Hub** is a powerful, open-source Chrome extension designed to be the ultimate "Swiss Army Knife" for productivity. Instead of installing a dozen single-purpose extensions, Utility Hub brings together essential tools into one lightweight, privacy-focused package.
+> Extensão Chrome all-in-one de produtividade — auto-reload, keep-alive e assinatura WhatsApp. Código aberto, privacidade em primeiro lugar.
 
-Everything runs locally. No tracking. No bloat. Just the tools you need to get work done.
+## ✨ Funcionalidades
 
-## ✨ Features
+- ✅ **Auto Reload** — Recarrega páginas automaticamente em intervalo configurável
+- ✅ **Keep Alive** — Mantém sessões ativas evitando timeouts
+- ✅ **Assinatura WhatsApp** — Adiciona assinatura personalizada no WhatsApp Web
+- ✅ **Privacidade first** — Nenhum dado sai do seu navegador
 
-### 🔄 Auto Reload
-Keep your tabs fresh and updated automatically. Perfect for monitoring dashboards, grabbing limited-time slots, or developing web apps.
-- **Custom Intervals**: Set reload times from seconds to minutes.
-- **Hard Reload**: Option to bypass cache (`Ctrl+F5` equivalent) to see the latest changes.
-- **Visual Status**: A green 'AR' badge lets you know which tabs are being monitored.
-- **Smart Management**: Controls are isolated per tab, so you can manage multiple reload timers simultaneously.
+## 🛠 Stack
 
-### ☕ Keep Alive
-Prevent session timeouts and keep your status connected on varied web services.
-- **Activity Simulation**: Simulates subtle mouse movements and key presses to convince the site you are active.
-- **Network Pings**: Optionally sends low-profile network requests to keep the connection alive.
-- **Sound Alert**: Optional audio feedback when a keep-alive ping occurs (good for debugging or monitoring).
-- **Background Run**: Works even when the tab is not in focus.
+- **Manifest V3** — Última versão da API de extensões Chrome
+- **JavaScript puro** — Sem dependências externas
+- **Storage sync** — Configurações sincronizadas entre dispositivos
 
-### ✍️ WhatsApp Signature
-Streamline your professional or personal messaging on WhatsApp Web.
-- **Floating Button**: A discreet "pen" icon is injected directly into the WhatsApp chat footer for instant access.
-- **Global Shortcut**: Use `Alt + S` to quickly append your signature without leaving the keyboard.
-- **Custom Text**: Easily update your signature text through the Utility Hub popup.
-- **Robust Insertion**: Uses advanced DOM manipulation to work reliably with WhatsApp's modern Lexical editor.
+## 🚀 Instalação
 
-### 🔜 Coming Soon
-We are actively building new modules! Planned features include:
-- **Form Filler**: Save and fill repetitive forms.
-- **Tab Suspender**: Save memory by suspending unused tabs.
-- **Note Taker**: Quick scratchpad for every tab.
+1. Acesse `chrome://extensions/`
+2. Ative o **Modo do desenvolvedor**
+3. Clique em **Carregar sem compactação**
+4. Selecione a pasta `utility-hub`
 
-## 🚀 Installation
+Ou instale pela [Chrome Web Store](https://chromewebstore.google.com) (em breve).
 
-Since this project is open source and in active development, you can install it directly from the source code.
+## 📖 Como usar
 
-1. **Clone the Repository**
-   ```bash
-   git clone https://github.com/silviorodrigues98/utility-hub_PROJECT.git
-   ```
+Após instalar, clique no ícone da extensão na barra de ferramentas:
 
-2. **Open Chrome Extensions Page**
-   - Navigate to `chrome://extensions/` in your browser.
-   - Or click the puzzle piece icon -> "Manage Extensions".
+- **Auto Reload:** Defina o intervalo em segundos e ative por aba
+- **Keep Alive:** Ative para abas específicas que precisam ficar ativas
+- **Assinatura:** Configure seu texto de assinatura para o WhatsApp Web
 
-3. **Enable Developer Mode**
-   - Toggle the switch named **"Developer mode"** in the top-right corner.
+## 🔒 Privacidade
 
-4. **Load the Extension**
-   - Click the **"Load unpacked"** button.
-   - Select the `utility-hub` folder inside the cloned repository.
+- ✅ Código 100% aberto e auditável
+- ✅ Sem trackers, analytics ou coleta de dados
+- ✅ Tudo roda localmente no seu navegador
+- ✅ Configurações armazenadas no chrome.storage.sync
 
-5. **Pin it!**
-   - Click the puzzle icon in your Chrome toolbar and pin **Utility Hub** for easy access.
+## 📄 Licença
 
-## 🤝 Contributing
-
-We want **Utility Hub** to be a community-driven project. Have an idea for a utility? Found a bug? We'd love your help!
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to get started.
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-*Made with ❤️ by the open source community.*
+MIT © [Silvio Rodrigues](https://github.com/silviorodrigues98)
